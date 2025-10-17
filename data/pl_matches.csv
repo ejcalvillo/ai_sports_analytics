@@ -19,15 +19,6 @@ date,time,match_id,league_name,league_id,opponent,opponent_id,home_away,result,g
 2025-10-04,15:00,e33ea33d,Premier League,9,Sunderland,8ef52968,Home,W,2.0,0.0,"74,004",Bruno Fernandes,3-4-3,Stuart Attwell,Manchester Utd,19538871
 2025-10-03,20:00,200f4acc,Premier League,9,Bournemouth,4ba7cbea,Away,L,1.0,3.0,"11,165",Joachim Andersen,3-4-3,Simon Hooper,Fulham,fd962109
 2025-10-03,20:00,200f4acc,Premier League,9,Fulham,fd962109,Home,W,3.0,1.0,"11,165",David Brooks,4-2-3-1,Simon Hooper,Bournemouth,4ba7cbea
-2025-10-02,19:45,fd300a7b,Conf Lg,882,Dynamo Kyiv,c734e22f,Away,W,2.0,0.0,"6,839",Marc Guéhi,3-4-3,Lothar D'Hondt,Crystal Palace,47c64c55
-2025-10-02,21:00,bb7bf892,Europa Lg,19,Feyenoord,fb4ca611,Away,W,2.0,0.0,"42,634",John McGinn,4-2-3-1,Rade Obrenović,Aston Villa,8602292d
-2025-10-02,20:00,be99601b,Europa Lg,19,Midtjylland,3c4fb635,Home,L,2.0,3.0,"29,323",Morgan Gibbs-White,3-4-3,Willy Delajod,Nott'ham Forest,e4a775cb
-2025-10-01,21:00,625d4779,Champions Lg,8,Monaco,fd6114db,Away,D,2.0,2.0,"11,275",Bernardo Silva,4-1-4-1,Jesús Gil,Manchester City,b8fd03ef
-2025-10-01,18:45,b59bda26,Champions Lg,8,Union SG,e14f61a5,Away,W,4.0,0.0,"16,038",Bruno Guimarães,4-3-3,Urs Schnyder,Newcastle Utd,b2b47a98
-2025-10-01,20:00,9b470fba,Champions Lg,8,Olympiacos,2fdb4aef,Home,W,2.0,0.0,"56,820",Martin Ødegaard,4-3-3,François Letexier,Arsenal,18bb7c10
-2025-09-30,20:00,72b9bd4f,Champions Lg,8,Benfica,a77c513e,Home,W,1.0,0.0,"38,636",Enzo Fernández,4-2-3-1,Daniel Siebert,Chelsea,cff3d9bb
-2025-09-30,21:00,54179334,Champions Lg,8,Bodø/Glimt,d86248bd,Away,D,2.0,2.0,"7,988",Micky van de Ven,4-3-3,Ivan Kružliak,Tottenham,361ca564
-2025-09-30,22:00,ad5b86fc,Champions Lg,8,Galatasaray,ecd11ca2,Away,L,0.0,1.0,"50,651",Virgil van Dijk,4-2-3-1,Clément Turpin,Liverpool,822bd0ba
 2025-09-29,20:00,1163f46d,Premier League,9,West Ham,7c21e445,Home,D,1.0,1.0,"51,890",James Tarkowski,4-2-3-1,Samuel Barrott,Everton,d3fd31cc
 2025-09-29,20:00,1163f46d,Premier League,9,Everton,d3fd31cc,Away,D,1.0,1.0,"51,890",Jarrod Bowen,4-1-4-1,Samuel Barrott,West Ham,7c21e445
 2025-09-28,16:30,e851cb5c,Premier League,9,Arsenal,18bb7c10,Home,L,1.0,2.0,"52,199",Bruno Guimarães,4-3-3,Jarred Gillett,Newcastle Utd,b2b47a98
@@ -48,19 +39,6 @@ date,time,match_id,league_name,league_id,opponent,opponent_id,home_away,result,g
 2025-09-27,12:30,f96a49ea,Premier League,9,Manchester Utd,19538871,Home,W,3.0,1.0,"17,193",Nathan Collins,4-2-3-1,Craig Pawson,Brentford,cd051869
 2025-09-27,15:00,53db8cb5,Premier League,9,Manchester City,b8fd03ef,Away,L,1.0,5.0,"52,427",Josh Cullen,5-4-1,Robert Jones,Burnley,943e8050
 2025-09-27,15:00,8a5edb7f,Premier League,9,Crystal Palace,47c64c55,Away,L,1.0,2.0,"25,118",Virgil van Dijk,4-2-3-1,Chris Kavanagh,Liverpool,822bd0ba
-2025-09-25,20:00,ab4f0e4f,Europa Lg,19,Bologna,1d8099f8,Home,W,1.0,0.0,"30,909",John McGinn,4-2-3-1,Jesús Gil,Aston Villa,8602292d
-2025-09-24,21:00,d3b1ee9e,Europa Lg,19,Betis,fc536746,Away,D,2.0,2.0,"57,257",Morgan Gibbs-White,4-1-4-1,Sascha Stegemann,Nott'ham Forest,e4a775cb
-2025-09-24,19:45,d8fb358d,EFL Cup,690,Bradford City,3148d79f,Home,W,4.0,1.0,"51,249",Bruno Guimarães,4-3-3,Thomas Kirk,Newcastle Utd,b2b47a98
-2025-09-24,19:45,d74a9be1,EFL Cup,690,Huddersfield,f5922ca5,Away,W,2.0,0.0,"22,052",John Stones,4-1-4-1,Michael Salisbury,Manchester City,b8fd03ef
-2025-09-24,19:45,351a1650,EFL Cup,690,Doncaster,03d10d77,Home,W,3.0,0.0,"42,473",Pedro Porro,4-3-3,Andy Madley,Tottenham,361ca564
-2025-09-24,20:00,2727dc54,EFL Cup,690,Port Vale,62657aa0,Away,W,2.0,0.0,"16,326",Bukayo Saka,4-3-3,Andrew Kitchen,Arsenal,18bb7c10
-2025-09-23,20:00,3c67cf07,EFL Cup,690,Southampton,33c895d4,Home,W,2.0,1.0,"59,518",Andrew Robertson,4-2-3-1,Thomas Bramall,Liverpool,822bd0ba
-2025-09-23,19:45,b9b93ad0,EFL Cup,690,Lincoln City,d76b7bed,Away,W,2.0,1.0,"10,214",Enzo Fernández,4-2-3-1,Matt Donohue,Chelsea,cff3d9bb
-2025-09-23,19:45,7e040c35,EFL Cup,690,Cambridge Utd,41da1cf3,Home,W,1.0,0.0,"16,254",Tom Cairney,4-2-3-1,Ruebyn Ricardo,Fulham,fd962109
-2025-09-23,19:45,3422fe5e,EFL Cup,690,Barnsley,293cb36b,Away,W,6.0,0.0,"7,790",James Milner,4-2-3-1,Tom Reeves,Brighton,d07537b9
-2025-09-23,19:45,84e43096,EFL Cup,690,Cardiff City,75fae011,Home,L,1.0,2.0,"6,010",Joe Worrall,3-4-1-2,David Webb,Burnley,943e8050
-2025-09-23,19:45,5159cf4d,EFL Cup,690,Wolves,8cec06e1,Away,L,0.0,2.0,"18,758",Séamus Coleman,4-2-3-1,Craig Pawson,Everton,d3fd31cc
-2025-09-23,19:45,5159cf4d,EFL Cup,690,Everton,d3fd31cc,Home,W,2.0,0.0,"18,758",Matt Doherty,4-3-3,Craig Pawson,Wolves,8cec06e1
 2025-09-21,14:00,f55b1b65,Premier League,9,Newcastle Utd,b2b47a98,Home,D,0.0,0.0,"11,212",David Brooks,4-2-3-1,Robert Jones,Bournemouth,4ba7cbea
 2025-09-21,16:30,2045939c,Premier League,9,Manchester City,b8fd03ef,Home,D,1.0,1.0,"60,161",Gabriel Magalhães,4-3-3,Stuart Attwell,Arsenal,18bb7c10
 2025-09-21,14:00,f55b1b65,Premier League,9,Bournemouth,4ba7cbea,Away,D,0.0,0.0,"11,212",Dan Burn,3-4-3,Robert Jones,Newcastle Utd,b2b47a98
@@ -81,16 +59,6 @@ date,time,match_id,league_name,league_id,opponent,opponent_id,home_away,result,g
 2025-09-20,12:30,5da72d0e,Premier League,9,Liverpool,822bd0ba,Away,L,1.0,2.0,"60,342",James Tarkowski,4-2-3-1,Darren England,Everton,d3fd31cc
 2025-09-20,15:00,45650a33,Premier League,9,Wolves,8cec06e1,Away,W,3.0,1.0,"30,807",Ethan Ampadu,4-3-3,Anthony Taylor,Leeds United,5bfb9659
 2025-09-20,15:00,fa03feeb,Premier League,9,Brighton,d07537b9,Away,D,2.0,2.0,"31,488",Cristian Romero,4-3-3,Chris Kavanagh,Tottenham,361ca564
-2025-09-18,20:00,53708b73,Champions Lg,8,Barcelona,206d90db,Home,L,1.0,2.0,"52,084",Bruno Guimarães,4-3-3,Glenn Nyberg,Newcastle Utd,b2b47a98
-2025-09-18,20:00,dc462ab9,Champions Lg,8,Napoli,d48ad4ff,Home,W,2.0,0.0,"49,531",Bernardo Silva,4-1-4-1,Felix Zwayer,Manchester City,b8fd03ef
-2025-09-17,20:00,05ff578e,EFL Cup,690,Swansea City,fb10988f,Away,L,2.0,3.0,"11,354",Ryan Yates,4-2-3-1,John Busby,Nott'ham Forest,e4a775cb
-2025-09-17,20:00,aaca9bcb,Champions Lg,8,Atlético Madrid,db3b9613,Home,W,3.0,2.0,"59,507",Virgil van Dijk,4-2-3-1,Maurizio Mariani,Liverpool,822bd0ba
-2025-09-17,21:00,d8142627,Champions Lg,8,Bayern Munich,054efa67,Away,L,1.0,3.0,"75,000",Reece James,4-2-3-1,Jose Maria Sánchez,Chelsea,cff3d9bb
-2025-09-16,20:00,a5816062,EFL Cup,690,Brentford,cd051869,Away,D,1.0,1.0,"15,895",John McGinn,4-2-3-1,John Brooks,Aston Villa,8602292d
-2025-09-16,20:00,aadf4746,EFL Cup,690,Millwall,e3c537a1,Home,D,1.0,1.0,"16,754",Marc Guéhi,3-4-3,John Busby,Crystal Palace,47c64c55
-2025-09-16,18:45,bea5d97a,Champions Lg,8,Athletic Club,2b390eca,Away,W,2.0,0.0,"51,059",Gabriel Magalhães,4-3-3,Donatas Rumšas,Arsenal,18bb7c10
-2025-09-16,20:00,a5816062,EFL Cup,690,Aston Villa,8602292d,Home,D,1.0,1.0,"15,895",Vitaly Janelt,3-5-2,John Brooks,Brentford,cd051869
-2025-09-16,20:00,163add56,Champions Lg,8,Villarreal,2a8183b3,Home,W,1.0,0.0,"54,755",Cristian Romero,4-3-3,Rade Obrenović,Tottenham,361ca564
 2025-09-14,14:00,fed27aaa,Premier League,9,Liverpool,822bd0ba,Home,L,0.0,1.0,"21,678",Josh Cullen,5-4-1,Michael Oliver,Burnley,943e8050
 2025-09-14,14:00,fed27aaa,Premier League,9,Burnley,943e8050,Away,W,1.0,0.0,"21,678",Virgil van Dijk,4-2-3-1,Michael Oliver,Liverpool,822bd0ba
 2025-09-14,16:30,f2b1061a,Premier League,9,Manchester City,b8fd03ef,Away,L,0.0,3.0,"52,534",Bruno Fernandes,3-4-3,Anthony Taylor,Manchester Utd,19538871
@@ -131,18 +99,6 @@ date,time,match_id,league_name,league_id,opponent,opponent_id,home_away,result,g
 2025-08-30,15:00,f03152d1,Premier League,9,Brentford,cd051869,Home,W,2.0,1.0,"46,267",Granit Xhaka,4-3-3,Anthony Taylor,Sunderland,8ef52968
 2025-08-30,12:30,2dbd7fbd,Premier League,9,Chelsea,cff3d9bb,Away,L,0.0,2.0,"39,745",Bernd Leno,4-2-3-1,Robert Jones,Fulham,fd962109
 2025-08-30,17:30,bc110e0b,Premier League,9,Newcastle Utd,b2b47a98,Home,D,0.0,0.0,"36,727",Pascal Struijk,4-3-3,Peter Bankes,Leeds United,5bfb9659
-2025-08-28,18:00,ca9e609c,Conf Lg,882,Fredrikstad,3b5f520f,Away,D,0.0,0.0,"10,016",Marc Guéhi,3-4-3,Kristo Tohver,Crystal Palace,47c64c55
-2025-08-27,20:00,0a809462,EFL Cup,690,Grimsby Town,a18a87d7,Away,D,2.0,2.0,"8,647",Harry Maguire,3-4-3,Tony Harrington,Manchester Utd,19538871
-2025-08-27,19:45,8a5a4902,EFL Cup,690,Oxford United,604617a2,Away,W,6.0,0.0,"9,010",James Milner,4-2-3-1,Oliver Langford,Brighton,d07537b9
-2025-08-27,20:00,cb485952,EFL Cup,690,Mansfield Town,13cb8449,Home,W,2.0,0.0,"48,583",Séamus Coleman,4-2-3-1,Thomas Bramall,Everton,d3fd31cc
-2025-08-27,19:45,4758c096,EFL Cup,690,Bristol City,93493607,Home,W,2.0,0.0,"11,749",Tom Cairney,4-2-3-1,Lewis Smith,Fulham,fd962109
-2025-08-26,19:45,c9009513,EFL Cup,690,Brentford,cd051869,Home,L,0.0,2.0,"10,499",Ryan Christie,4-2-3-1,Michael Salisbury,Bournemouth,4ba7cbea
-2025-08-26,20:00,7c09b85b,EFL Cup,690,Sheffield Weds,bba7d733,Away,D,1.0,1.0,"7,801",Sam Byram,4-2-3-1,Robert Jones,Leeds United,5bfb9659
-2025-08-26,19:30,64ad3f11,EFL Cup,690,West Ham,7c21e445,Home,W,3.0,2.0,"19,561",Hwang Hee-chan,3-4-3,Darren England,Wolves,8cec06e1
-2025-08-26,19:45,c9009513,EFL Cup,690,Bournemouth,4ba7cbea,Away,W,2.0,0.0,"10,499",Mathias Jensen,3-4-1-2,Michael Salisbury,Brentford,cd051869
-2025-08-26,19:45,0597cf80,EFL Cup,690,Derby County,26ab47ee,Home,W,2.0,1.0,"7,019",Joe Worrall,4-4-2,Andrew Kitchen,Burnley,943e8050
-2025-08-26,19:30,64ad3f11,EFL Cup,690,Wolves,8cec06e1,Away,L,2.0,3.0,"19,561",Jarrod Bowen,3-5-2,Darren England,West Ham,7c21e445
-2025-08-26,19:45,b081cf0a,EFL Cup,690,Huddersfield,f5922ca5,Home,D,1.0,1.0,"22,249",Dan Neil,4-4-2,Dean Whitestone,Sunderland,8ef52968
 2025-08-25,20:00,2c75d21a,Premier League,9,Liverpool,822bd0ba,Home,L,2.0,3.0,"52,230",Bruno Guimarães,4-3-3,Simon Hooper,Newcastle Utd,b2b47a98
 2025-08-25,20:00,2c75d21a,Premier League,9,Newcastle Utd,b2b47a98,Away,W,3.0,2.0,"52,230",Virgil van Dijk,4-2-3-1,Simon Hooper,Liverpool,822bd0ba
 2025-08-24,16:30,fc45a8b2,Premier League,9,Fulham,fd962109,Away,D,1.0,1.0,"27,512",Bruno Fernandes,3-4-3,Chris Kavanagh,Manchester Utd,19538871
@@ -163,7 +119,6 @@ date,time,match_id,league_name,league_id,opponent,opponent_id,home_away,result,g
 2025-08-23,15:00,4e287736,Premier League,9,Sunderland,8ef52968,Home,W,2.0,0.0,"21,285",Josh Cullen,4-2-3-1,Michael Salisbury,Burnley,943e8050
 2025-08-22,20:00,57b35843,Premier League,9,Chelsea,cff3d9bb,Home,L,1.0,5.0,"62,462",Jarrod Bowen,3-4-1-2,Michael Oliver,West Ham,7c21e445
 2025-08-22,20:00,57b35843,Premier League,9,West Ham,7c21e445,Away,W,5.0,1.0,"62,462",Enzo Fernández,4-2-3-1,Michael Oliver,Chelsea,cff3d9bb
-2025-08-21,20:00,5d72e0c2,Conf Lg,882,Fredrikstad,3b5f520f,Home,W,1.0,0.0,"23,013",Marc Guéhi,3-4-3,Anastasios Papapetrou,Crystal Palace,47c64c55
 2025-08-18,20:00,0701e218,Premier League,9,Everton,d3fd31cc,Home,W,1.0,0.0,"36,820",Ethan Ampadu,4-3-3,Chris Kavanagh,Leeds United,5bfb9659
 2025-08-18,20:00,0701e218,Premier League,9,Leeds United,5bfb9659,Away,L,0.0,1.0,"36,820",James Tarkowski,4-2-3-1,Chris Kavanagh,Everton,d3fd31cc
 2025-08-17,14:00,855f8b5e,Premier League,9,Brentford,cd051869,Home,W,3.0,1.0,"29,949",Morgan Gibbs-White,4-2-3-1,Peter Bankes,Nott'ham Forest,e4a775cb
@@ -184,6 +139,3 @@ date,time,match_id,league_name,league_id,opponent,opponent_id,home_away,result,g
 2025-08-16,17:30,8613020d,Premier League,9,Wolves,8cec06e1,Away,W,4.0,0.0,"31,456",Bernardo Silva,4-3-3,Jarred Gillett,Manchester City,b8fd03ef
 2025-08-15,20:00,a071faa8,Premier League,9,Liverpool,822bd0ba,Away,L,2.0,4.0,"60,315",Adam Smith,4-1-4-1,Anthony Taylor,Bournemouth,4ba7cbea
 2025-08-15,20:00,a071faa8,Premier League,9,Bournemouth,4ba7cbea,Home,W,4.0,2.0,"60,315",Virgil van Dijk,4-2-3-1,Anthony Taylor,Liverpool,822bd0ba
-2025-08-13,21:00,7eef879c,Super Cup,122,Paris S,e2d8892c,Neutral,D,2.0,2.0,"21,025",Cristian Romero,4-3-3,João Pinheiro,Tottenham,361ca564
-2025-08-10,15:00,096e63eb,FA Community Shield,602,Crystal Palace,47c64c55,Neutral,D,2.0,2.0,"82,645",Virgil van Dijk,4-2-3-1,Chris Kavanagh,Liverpool,822bd0ba
-2025-08-10,15:00,096e63eb,FA Community Shield,602,Liverpool,822bd0ba,Neutral,D,2.0,2.0,"82,645",Marc Guéhi,3-4-3,Chris Kavanagh,Crystal Palace,47c64c55
