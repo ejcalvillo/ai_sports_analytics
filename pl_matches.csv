@@ -1,0 +1,71 @@
+match_id,date,time,wk,home,home_team_id,away,away_team_id,home_team_score,away_team_score,venue,attendance,referee
+8c0ee359,2025-10-05,16:30,7,Brentford,cd051869,Manchester City,b8fd03ef,,,Gtech Community Stadium,"17,028",Darren England
+e33f1657,2025-10-05,14:00,7,Newcastle Utd,b2b47a98,Nott'ham Forest,e4a775cb,,,St James' Park,"52,189",Peter Bankes
+db870461,2025-10-05,14:00,7,Aston Villa,8602292d,Burnley,943e8050,,,Villa Park,"40,308",Andrew Kitchen
+88e53add,2025-10-05,14:00,7,Everton,d3fd31cc,Crystal Palace,47c64c55,,,Hill Dickinson Stadium,"51,770",Michael Salisbury
+1314f9fd,2025-10-05,14:00,7,Wolves,8cec06e1,Brighton,d07537b9,,,Molineux Stadium,"29,504",Jarred Gillett
+266bddc6,2025-10-04,15:00,7,Arsenal,18bb7c10,West Ham,7c21e445,,,Emirates Stadium,"60,181",John Brooks
+3e588df8,2025-10-04,12:30,7,Leeds United,5bfb9659,Tottenham,361ca564,,,Elland Road,"36,703",Thomas Bramall
+780d534e,2025-10-04,17:30,7,Chelsea,cff3d9bb,Liverpool,822bd0ba,,,Stamford Bridge,"39,538",Anthony Taylor
+e33ea33d,2025-10-04,15:00,7,Manchester Utd,19538871,Sunderland,8ef52968,,,Old Trafford,"74,004",Stuart Attwell
+200f4acc,2025-10-03,20:00,7,Bournemouth,4ba7cbea,Fulham,fd962109,,,Vitality Stadium,"11,165",Simon Hooper
+1163f46d,2025-09-29,20:00,6,Everton,d3fd31cc,West Ham,7c21e445,,,Hill Dickinson Stadium,"51,890",Samuel Barrott
+e851cb5c,2025-09-28,16:30,6,Newcastle Utd,b2b47a98,Arsenal,18bb7c10,,,St James' Park,"52,199",Jarred Gillett
+7345f259,2025-09-28,14:00,6,Aston Villa,8602292d,Fulham,fd962109,,,Villa Park,"40,350",Andy Madley
+b3a3df9a,2025-09-27,15:00,6,Chelsea,cff3d9bb,Brighton,d07537b9,,,Stamford Bridge,"39,597",Simon Hooper
+d2fc69e6,2025-09-27,15:00,6,Leeds United,5bfb9659,Bournemouth,4ba7cbea,,,Elland Road,"36,574",Michael Oliver
+8a5edb7f,2025-09-27,15:00,6,Crystal Palace,47c64c55,Liverpool,822bd0ba,,,Selhurst Park,"25,118",Chris Kavanagh
+116cff7d,2025-09-27,20:00,6,Tottenham,361ca564,Wolves,8cec06e1,,,Tottenham Hotspur Stadium,"60,537",Michael Salisbury
+78970349,2025-09-27,17:30,6,Nott'ham Forest,e4a775cb,Sunderland,8ef52968,,,The City Ground,"30,226",Tony Harrington
+f96a49ea,2025-09-27,12:30,6,Brentford,cd051869,Manchester Utd,19538871,,,Gtech Community Stadium,"17,193",Craig Pawson
+53db8cb5,2025-09-27,15:00,6,Manchester City,b8fd03ef,Burnley,943e8050,,,Etihad Stadium,"52,427",Robert Jones
+2045939c,2025-09-21,16:30,5,Arsenal,18bb7c10,Manchester City,b8fd03ef,,,Emirates Stadium,"60,161",Stuart Attwell
+4e615d10,2025-09-21,14:00,5,Sunderland,8ef52968,Aston Villa,8602292d,,,Stadium of Light,"46,261",Samuel Barrott
+f55b1b65,2025-09-21,14:00,5,Bournemouth,4ba7cbea,Newcastle Utd,b2b47a98,,,Vitality Stadium,"11,212",Robert Jones
+a562da13,2025-09-20,17:30,5,Manchester Utd,19538871,Chelsea,cff3d9bb,,,Old Trafford,"74,124",Peter Bankes
+295b388b,2025-09-20,20:00,5,Fulham,fd962109,Brentford,cd051869,,,Craven Cottage,"26,113",Michael Oliver
+15b707b3,2025-09-20,15:00,5,West Ham,7c21e445,Crystal Palace,47c64c55,,,London Stadium,"62,455",Tony Harrington
+45650a33,2025-09-20,15:00,5,Wolves,8cec06e1,Leeds United,5bfb9659,,,Molineux Stadium,"30,807",Anthony Taylor
+5da72d0e,2025-09-20,12:30,5,Liverpool,822bd0ba,Everton,d3fd31cc,,,Anfield,"60,342",Darren England
+e523c1cd,2025-09-20,15:00,5,Burnley,943e8050,Nott'ham Forest,e4a775cb,,,Turf Moor,"21,475",Thomas Bramall
+fa03feeb,2025-09-20,15:00,5,Brighton,d07537b9,Tottenham,361ca564,,,The American Express Stadium,"31,488",Chris Kavanagh
+fed27aaa,2025-09-14,14:00,4,Burnley,943e8050,Liverpool,822bd0ba,,,Turf Moor,"21,678",Michael Oliver
+f2b1061a,2025-09-14,16:30,4,Manchester City,b8fd03ef,Manchester Utd,19538871,,,Etihad Stadium,"52,534",Anthony Taylor
+86c7261a,2025-09-13,17:30,4,West Ham,7c21e445,Tottenham,361ca564,,,London Stadium,"62,459",Jarred Gillett
+d8104c65,2025-09-13,20:00,4,Brentford,cd051869,Chelsea,cff3d9bb,,,Gtech Community Stadium,"16,795",Stuart Attwell
+8398bbef,2025-09-13,15:00,4,Bournemouth,4ba7cbea,Brighton,d07537b9,,,Vitality Stadium,"11,167",Peter Bankes
+a624dc89,2025-09-13,15:00,4,Everton,d3fd31cc,Aston Villa,8602292d,,,Hill Dickinson Stadium,"52,114",Simon Hooper
+e3cade07,2025-09-13,15:00,4,Crystal Palace,47c64c55,Sunderland,8ef52968,,,Selhurst Park,"25,154",Thomas Bramall
+ab8543fb,2025-09-13,15:00,4,Fulham,fd962109,Leeds United,5bfb9659,,,Craven Cottage,"27,327",Craig Pawson
+55fbbbe6,2025-09-13,15:00,4,Newcastle Utd,b2b47a98,Wolves,8cec06e1,,,St James' Park,"52,145",Chris Kavanagh
+4fe3e679,2025-09-13,12:30,4,Arsenal,18bb7c10,Nott'ham Forest,e4a775cb,,,Emirates Stadium,"60,167",Darren England
+b0005978,2025-08-31,16:30,3,Liverpool,822bd0ba,Arsenal,18bb7c10,,,Anfield,"60,455",Chris Kavanagh
+810d81e7,2025-08-31,14:00,3,Brighton,d07537b9,Manchester City,b8fd03ef,,,The American Express Stadium,"31,485",Darren England
+299beb27,2025-08-31,14:00,3,Nott'ham Forest,e4a775cb,West Ham,7c21e445,,,The City Ground,"30,215",Craig Pawson
+cd51ed93,2025-08-31,19:00,3,Aston Villa,8602292d,Crystal Palace,47c64c55,,,Villa Park,"41,036",Stuart Attwell
+bc110e0b,2025-08-30,17:30,3,Leeds United,5bfb9659,Newcastle Utd,b2b47a98,,,Elland Road,"36,727",Peter Bankes
+0e30cf4b,2025-08-30,15:00,3,Tottenham,361ca564,Bournemouth,4ba7cbea,,,Tottenham Hotspur Stadium,"61,250",Simon Hooper
+f03152d1,2025-08-30,15:00,3,Sunderland,8ef52968,Brentford,cd051869,,,Stadium of Light,"46,267",Anthony Taylor
+0050df89,2025-08-30,15:00,3,Manchester Utd,19538871,Burnley,943e8050,,,Old Trafford,"74,257",Samuel Barrott
+3c399f5e,2025-08-30,15:00,3,Wolves,8cec06e1,Everton,d3fd31cc,,,Molineux Stadium,"30,271",Michael Oliver
+2dbd7fbd,2025-08-30,12:30,3,Chelsea,cff3d9bb,Fulham,fd962109,,,Stamford Bridge,"39,745",Robert Jones
+2c75d21a,2025-08-25,20:00,2,Newcastle Utd,b2b47a98,Liverpool,822bd0ba,,,St James' Park,"52,230",Simon Hooper
+0bad74e2,2025-08-24,14:00,2,Everton,d3fd31cc,Brighton,d07537b9,,,Hill Dickinson Stadium,"51,759",Stuart Attwell
+a3984be1,2025-08-24,14:00,2,Crystal Palace,47c64c55,Nott'ham Forest,e4a775cb,,,Selhurst Park,"24,876",Anthony Taylor
+fc45a8b2,2025-08-24,16:30,2,Fulham,fd962109,Manchester Utd,19538871,,,Craven Cottage,"27,512",Chris Kavanagh
+4e287736,2025-08-23,15:00,2,Burnley,943e8050,Sunderland,8ef52968,,,Turf Moor,"21,285",Michael Salisbury
+860c7af2,2025-08-23,15:00,2,Brentford,cd051869,Aston Villa,8602292d,,,Gtech Community Stadium,"16,838",Tony Harrington
+a515fb3a,2025-08-23,15:00,2,Bournemouth,4ba7cbea,Wolves,8cec06e1,,,Vitality Stadium,"11,070",Thomas Bramall
+f7e2c9c7,2025-08-23,12:30,2,Manchester City,b8fd03ef,Tottenham,361ca564,,,Etihad Stadium,"51,785",Peter Bankes
+e8724659,2025-08-23,17:30,2,Arsenal,18bb7c10,Leeds United,5bfb9659,,,Emirates Stadium,"60,110",Jarred Gillett
+57b35843,2025-08-22,20:00,2,West Ham,7c21e445,Chelsea,cff3d9bb,,,London Stadium,"62,462",Michael Oliver
+0701e218,2025-08-18,20:00,1,Leeds United,5bfb9659,Everton,d3fd31cc,,,Elland Road,"36,820",Chris Kavanagh
+643d26fd,2025-08-17,16:30,1,Manchester Utd,19538871,Arsenal,18bb7c10,,,Old Trafford,"73,475",Simon Hooper
+855f8b5e,2025-08-17,14:00,1,Nott'ham Forest,e4a775cb,Brentford,cd051869,,,The City Ground,"29,949",Peter Bankes
+2185fc64,2025-08-17,14:00,1,Chelsea,cff3d9bb,Crystal Palace,47c64c55,,,Stamford Bridge,"39,678",Darren England
+57c49bae,2025-08-16,15:00,1,Brighton,d07537b9,Fulham,fd962109,,,The American Express Stadium,"31,478",Samuel Barrott
+e1058522,2025-08-16,15:00,1,Sunderland,8ef52968,West Ham,7c21e445,,,Stadium of Light,"46,233",Robert Jones
+bbdf4739,2025-08-16,12:30,1,Aston Villa,8602292d,Newcastle Utd,b2b47a98,,,Villa Park,"42,526",Craig Pawson
+d41bb8b3,2025-08-16,15:00,1,Tottenham,361ca564,Burnley,943e8050,,,Tottenham Hotspur Stadium,"61,077",Michael Oliver
+8613020d,2025-08-16,17:30,1,Wolves,8cec06e1,Manchester City,b8fd03ef,,,Molineux Stadium,"31,456",Jarred Gillett
+a071faa8,2025-08-15,20:00,1,Liverpool,822bd0ba,Bournemouth,4ba7cbea,,,Anfield,"60,315",Anthony Taylor
