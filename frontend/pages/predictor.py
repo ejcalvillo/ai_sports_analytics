@@ -153,17 +153,41 @@ def predict_match_outcome(home_team: str, away_team: str,
         'model_used': 'RandomForest (2000 trees)'
     }
 
-def calculate_expected_score(prediction: dict) -> tuple:
-    """Calculate expected score based on probabilities"""
-    home_expected = (
-        2.0 * (prediction['home_win_probability'] / 100) +
-        1.0 * (prediction['draw_probability'] / 100)
-    )
-    away_expected = (
-        2.0 * (prediction['away_win_probability'] / 100) +
-        1.0 * (prediction['draw_probability'] / 100)
-    )
-    return (round(home_expected, 1), round(away_expected, 1))
+def calculate_predicted_score(prediction: dict, home_form: dict, away_form: dict) -> tuple:
+    """
+    Calculate predicted integer score based on team form and match outcome
+    Uses average goals scored/conceded from recent matches
+    Returns whole number scores only - no decimals allowed in soccer!
+    """
+    outcome = prediction['prediction']
+    
+    # Get average goals from recent form (home stats when playing home, away stats when playing away)
+    home_avg_goals = home_form.get('home', {}).get('xg', 1.5)  # Expected goals
+    away_avg_goals = away_form.get('away', {}).get('xg', 1.2)  # Expected goals
+    
+    # Adjust scores based on predicted outcome
+    if outcome == "Home Win":
+        # Home team expected to score more
+        home_score = round(max(home_avg_goals * 1.2, 2))  # Boost by 20% for win
+        away_score = round(max(away_avg_goals * 0.8, 0))  # Reduce by 20%
+    elif outcome == "Away Win":
+        # Away team expected to score more
+        home_score = round(max(home_avg_goals * 0.8, 0))  # Reduce by 20%
+        away_score = round(max(away_avg_goals * 1.2, 2))  # Boost by 20% for win
+    else:  # Draw
+        # Both teams score similar amounts
+        home_score = round(home_avg_goals)
+        away_score = round(away_avg_goals)
+        # Ensure it's actually a draw
+        if home_score != away_score:
+            avg = (home_score + away_score) // 2
+            home_score = away_score = max(avg, 1)
+    
+    # Ensure realistic score range (0-5 goals typical)
+    home_score = max(0, min(int(home_score), 5))
+    away_score = max(0, min(int(away_score), 5))
+    
+    return (home_score, away_score)
 
 def show():
     """Display the match predictor page"""
@@ -310,11 +334,14 @@ def show():
             
             st.plotly_chart(fig, use_container_width=True)
             
-            # Expected score
-            expected_home, expected_away = calculate_expected_score(prediction)
+            # Predicted score (integers only - no decimals!)
+            # Get team form for score calculation
+            home_form = loader.get_team_recent_form(home_team)
+            away_form = loader.get_team_recent_form(away_team)
+            predicted_home, predicted_away = calculate_predicted_score(prediction, home_form, away_form)
             
             st.markdown("---")
-            st.subheader("⚽ Expected Score")
+            st.subheader("⚽ Predicted Score")
             
             col1, col2, col3 = st.columns([2, 1, 2])
             
@@ -322,10 +349,13 @@ def show():
                 st.markdown(f"<h3 style='text-align: center;'>{home_team}</h3>", unsafe_allow_html=True)
             
             with col2:
-                st.markdown(f"<h1 style='text-align: center; color: #1f77b4;'>{expected_home:.1f} - {expected_away:.1f}</h1>", unsafe_allow_html=True)
+                # Display integer scores only (format as :d to ensure no decimals)
+                st.markdown(f"<h1 style='text-align: center; color: #1f77b4;'>{int(predicted_home)} - {int(predicted_away)}</h1>", unsafe_allow_html=True)
             
             with col3:
                 st.markdown(f"<h3 style='text-align: center;'>{away_team}</h3>", unsafe_allow_html=True)
+            
+            st.caption("🔢 Predicted scoreline based on match outcome prediction. Actual goals may vary.")
             
             # Key factors
             st.markdown("---")
