@@ -72,11 +72,20 @@ class DataLoader:
             return None
     
     def get_team_list(self) -> list:
-        """Get list of all teams from the teams dataset"""
-        teams_df = self.load_teams_data()
-        if teams_df is not None and 'home' in teams_df.columns:
-            return sorted(teams_df['home'].unique().tolist())
-        return []
+        """
+        Get list of teams that have data in currmatches.csv
+        Only returns teams with home_team_ and away_team_ columns
+        """
+        # Load currmatches to see which teams have actual data
+        curr_matches = self.load_current_matches()
+        if curr_matches is None:
+            return []
+        
+        # Extract team names from home_team_ columns
+        home_cols = [col for col in curr_matches.columns if col.startswith('home_team_')]
+        teams = [col.replace('home_team_', '') for col in home_cols]
+        
+        return sorted(teams)
     
     def get_match_results_summary(self) -> Dict:
         """Get summary statistics of match results"""
