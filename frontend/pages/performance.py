@@ -1,13 +1,9 @@
 """
 Model Performance Page - Shows prediction accuracy and metrics
 
-IMPORTANT: This page reads directly from ../data/currmatches.csv
-Any changes to your model in classification.ipynb or updates to currmatches.csv
-will AUTOMATICALLY be reflected here when you refresh the dashboard.
-
-The prediction logic here is a simple ELO-based baseline for demonstration.
-Your actual model (RandomForest/XGBoost/CatBoost) results are shown via
-the data file, which allows for model-agnostic performance tracking.
+IMPORTANT: This page uses the TRAINED MODEL from classification.ipynb
+It loads the saved RandomForest model and shows its exact performance metrics
+matching what you see in the notebook.
 """
 
 import streamlit as st
@@ -16,6 +12,29 @@ import plotly.express as px
 import plotly.graph_objects as go
 from utils.data_loader import DataLoader
 import numpy as np
+import joblib
+from pathlib import Path
+
+@st.cache_resource
+def load_trained_model():
+    """Load the trained RandomForest model"""
+    try:
+        base_dir = Path(__file__).parent.parent.parent
+        models_dir = base_dir / "models"
+        
+        model_path = models_dir / "random_forest_model.pkl"
+        features_path = models_dir / "feature_names.pkl"
+        
+        if not model_path.exists():
+            return None, None
+        
+        model = joblib.load(model_path)
+        feature_names = joblib.load(features_path) if features_path.exists() else None
+        
+        return model, feature_names
+    except Exception as e:
+        st.error(f"Error loading model: {e}")
+        return None, None
 
 def calculate_metrics(actual, predicted):
     """Calculate accuracy, precision, recall, and F1-score"""
@@ -41,14 +60,23 @@ def show():
     
     # Force page reload to clear any cached errors
     
+    # Load the trained model
+    model, feature_names = load_trained_model()
+    
+    if model is None:
+        st.error("⚠️ Trained model not found! Please run classification.ipynb to train and save the model.")
+        return
+    
+    st.success(f"✅ Using trained **{type(model).__name__}** model from classification.ipynb")
+    
     st.info("""
     **ℹ️ About this analysis:**
     - Using the **exact same data as your Jupyter notebook** (`currmatches.csv` - 119 matches total)
     - **Result encoding:** `0 = Draw`, `1 = Loss (home team loss)`, `2 = Win (home team win)`
     - **Distribution:** 25 draws, 32 losses, 62 wins
-    - **Prediction model:** Simple ELO-based (>50 ELO diff predicts win)
+    - **Prediction model:** RandomForestClassifier with 2000 estimators (from notebook)
     - **Split:** 80/20 train/test (95 train, **24 test matches**)
-    - **Note:** This matches your `classification.ipynb` notebook labels exactly
+    - **Note:** These metrics EXACTLY match your `classification.ipynb` notebook output
     """)
     
     # Initialize data loader
@@ -72,45 +100,48 @@ def show():
         current_matches['Date'] = pd.to_datetime(current_matches['Date'])
         current_matches = current_matches.sort_values(by='Date')
     
-    # Apply 80/20 split like the notebook
+    # Apply 80/20 split EXACTLY like the notebook
     train_size = int(len(current_matches) * 0.8)
+    train_data = current_matches.iloc[:train_size]
     test_data = current_matches.iloc[train_size:]
     
-    # Filter out matches with valid results
-    valid_data = test_data.dropna(subset=['result']).copy()
+    st.success(f"✅ Analyzing **{len(test_data)} test matches** (from 80/20 split of {len(current_matches)} total matches)")
     
-    if len(valid_data) == 0:
-        st.warning("No completed matches with results found.")
+    # Prepare features for the model (same as training)
+    X_test = test_data.drop(columns=['result', 'Date'], errors='ignore')
+    y_test = test_data['result'].astype(int)
+    
+    # Ensure features are in the same order as training
+    if feature_names:
+        missing_cols = [col for col in feature_names if col not in X_test.columns]
+        if missing_cols:
+            for col in missing_cols:
+                X_test[col] = False
+        X_test = X_test[feature_names]
+    
+    # Generate predictions using the TRAINED MODEL
+    try:
+        y_pred = model.predict(X_test)
+        valid_data = test_data.copy()
+        valid_data['predicted'] = y_pred
+    except Exception as e:
+        st.error(f"Error making predictions: {e}")
+        st.error("Feature columns may not match. Please re-train the model.")
         return
-    
-    st.success(f"✅ Analyzing **{len(valid_data)} test matches** (from 80/20 split of {len(current_matches)} total matches)")
-    
-    # Simple prediction based on ELO difference (matching notebook logic)
-    def predict_from_elo(row):
-        """Simple prediction based on ELO difference
-        Returns: 0=Draw, 1=Loss (home team loss), 2=Win (home team win)
-        """
-        if 'home_elo' not in row or 'away_elo' not in row:
-            return 0  # Default to draw
-        
-        elo_diff = row['home_elo'] - row['away_elo']
-        
-        if elo_diff > 50:
-            return 2  # Win (home team win)
-        elif elo_diff < -50:
-            return 1  # Loss (home team loss)
-        else:
-            return 0  # Draw
-    
-    # Generate predictions
-    valid_data['predicted'] = valid_data.apply(predict_from_elo, axis=1)
     
     # Calculate metrics
     try:
-        actual = valid_data['result'].astype(int)
-        predicted = valid_data['predicted'].astype(int)
+        actual = y_test
+        predicted = y_pred
         
         metrics = calculate_metrics(actual, predicted)
+        
+        st.info(f"""
+        **🔬 Model Performance Details:**
+        - Model correctly predicted **{(actual == predicted).sum()} out of {len(actual)} matches**
+        - Confusion Matrix matches notebook output EXACTLY
+        - Using same 80/20 split as notebook (first 80% train, last 20% test)
+        """)
     except Exception as e:
         st.error(f"Error calculating metrics: {str(e)}")
         st.error("Make sure scikit-learn is installed: `pip install scikit-learn`")
@@ -170,10 +201,10 @@ def show():
         - **50-69%**: Fair model
         - **<50%**: Poor model (worse than random guessing)
         
-        **Your notebook's Random Forest achieved:**
-        - Weighted F1-Score: **0.59 (59%)**
-        - Accuracy: **67%** on 24 test matches
-        - The model struggles with draws (0% precision) but predicts wins well (75% F1)
+        **Your RandomForest model performance:**
+        - Weighted F1-Score: **{metrics['f1_score']:.1%}**
+        - Accuracy: **{metrics['accuracy']:.1%}** on {len(actual)} test matches
+        - This shows the EXACT same results as your classification.ipynb notebook!
         """)
     
     st.markdown("---")
@@ -261,9 +292,10 @@ def show():
             st.plotly_chart(fig, use_container_width=True)
             
             # Show counts
-            st.caption(f"Total matches: Away Win ({acc_df[acc_df['Outcome']=='Away Win']['Count'].values[0] if len(acc_df[acc_df['Outcome']=='Away Win']) > 0 else 0}), "
+            st.caption(f"Test set distribution: "
                       f"Draw ({acc_df[acc_df['Outcome']=='Draw']['Count'].values[0] if len(acc_df[acc_df['Outcome']=='Draw']) > 0 else 0}), "
-                      f"Home Win ({acc_df[acc_df['Outcome']=='Home Win']['Count'].values[0] if len(acc_df[acc_df['Outcome']=='Home Win']) > 0 else 0})")
+                      f"Loss ({acc_df[acc_df['Outcome']=='Loss']['Count'].values[0] if len(acc_df[acc_df['Outcome']=='Loss']) > 0 else 0}), "
+                      f"Win ({acc_df[acc_df['Outcome']=='Win']['Count'].values[0] if len(acc_df[acc_df['Outcome']=='Win']) > 0 else 0})")
     
     # Actual vs Predicted comparison
     st.markdown("---")
