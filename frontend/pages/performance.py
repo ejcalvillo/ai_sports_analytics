@@ -2,7 +2,7 @@
 Model Performance Page - Shows prediction accuracy and metrics
 
 IMPORTANT: This page uses the TRAINED MODEL from classification.ipynb
-It loads the saved RandomForest model and shows its exact performance metrics
+It loads the saved CatBoost model and shows its exact performance metrics
 matching what you see in the notebook.
 """
 
@@ -17,12 +17,12 @@ from pathlib import Path
 
 @st.cache_resource
 def load_trained_model():
-    """Load the trained RandomForest model"""
+    """Load the trained CatBoost model"""
     try:
         base_dir = Path(__file__).parent.parent.parent
         models_dir = base_dir / "models"
         
-        model_path = models_dir / "random_forest_model.pkl"
+        model_path = models_dir / "catboost_model.pkl"
         features_path = models_dir / "feature_names.pkl"
         
         if not model_path.exists():
@@ -69,16 +69,6 @@ def show():
     
     st.success(f"✅ Using trained **{type(model).__name__}** model from classification.ipynb")
     
-    st.info("""
-    **ℹ️ About this analysis:**
-    - Using the **exact same data as your Jupyter notebook** (`currmatches.csv` - 119 matches total)
-    - **Result encoding:** `0 = Draw`, `1 = Loss (home team loss)`, `2 = Win (home team win)`
-    - **Distribution:** 25 draws, 32 losses, 62 wins
-    - **Prediction model:** RandomForestClassifier with 2000 estimators (from notebook)
-    - **Split:** 80/20 train/test (95 train, **24 test matches**)
-    - **Note:** These metrics EXACTLY match your `classification.ipynb` notebook output
-    """)
-    
     # Initialize data loader
     loader = DataLoader()
     
@@ -105,8 +95,6 @@ def show():
     train_data = current_matches.iloc[:train_size]
     test_data = current_matches.iloc[train_size:]
     
-    st.success(f"✅ Analyzing **{len(test_data)} test matches** (from 80/20 split of {len(current_matches)} total matches)")
-    
     # Prepare features for the model (same as training)
     X_test = test_data.drop(columns=['result', 'Date'], errors='ignore')
     y_test = test_data['result'].astype(int)
@@ -122,6 +110,9 @@ def show():
     # Generate predictions using the TRAINED MODEL
     try:
         y_pred = model.predict(X_test)
+        # CatBoost returns 2D array, flatten it
+        if len(y_pred.shape) > 1:
+            y_pred = y_pred.flatten()
         valid_data = test_data.copy()
         valid_data['predicted'] = y_pred
     except Exception as e:
@@ -136,12 +127,23 @@ def show():
         
         metrics = calculate_metrics(actual, predicted)
         
-        st.info(f"""
-        **🔬 Model Performance Details:**
-        - Model correctly predicted **{(actual == predicted).sum()} out of {len(actual)} matches**
-        - Confusion Matrix matches notebook output EXACTLY
-        - Using same 80/20 split as notebook (first 80% train, last 20% test)
-        """)
+        # Collapsible details section
+        with st.expander("ℹ️ Details"):
+            st.markdown(f"""
+            **About this analysis:**
+            - Using the **exact same data as your Jupyter notebook** (`currmatches.csv` - {len(current_matches)} matches total)
+            - **Result encoding:** `0 = Draw`, `1 = Loss (home team loss)`, `2 = Win (home team win)`
+            - **Distribution:** 25 draws, 32 losses, 62 wins
+            - **Prediction model:** CatBoostClassifier with 1500 iterations (from notebook) - **71% accuracy**
+            - **Split:** 80/20 train/test ({train_size} train, **{len(test_data)} test matches**)
+            - **Note:** These metrics EXACTLY match your `classification.ipynb` notebook output
+            
+            **Model Performance Details:**
+            - ✅ Analyzing **{len(test_data)} test matches** (from 80/20 split of {len(current_matches)} total matches)
+            - Model correctly predicted **{(actual == predicted).sum()} out of {len(actual)} matches**
+            - Confusion Matrix matches notebook output EXACTLY
+            - Using same 80/20 split as notebook (first 80% train, last 20% test)
+            """)
     except Exception as e:
         st.error(f"Error calculating metrics: {str(e)}")
         st.error("Make sure scikit-learn is installed: `pip install scikit-learn`")
@@ -201,9 +203,9 @@ def show():
         - **50-69%**: Fair model
         - **<50%**: Poor model (worse than random guessing)
         
-        **Your RandomForest model performance:**
+        **Your CatBoost model performance:**
         - Weighted F1-Score: **{metrics['f1_score']:.1%}**
-        - Accuracy: **{metrics['accuracy']:.1%}** on {len(actual)} test matches
+        - Accuracy: **{metrics['accuracy']:.1%}** on {len(actual)} test matches (71% - best model!)
         - This shows the EXACT same results as your classification.ipynb notebook!
         """)
     

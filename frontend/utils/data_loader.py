@@ -232,6 +232,58 @@ class DataLoader:
             'away': away_stats
         }
     
+    def get_team_last_n_results(self, team_name: str, n: int = 5) -> list:
+        """
+        Get the last N match results for a team
+        Returns list of result strings: 'W' (win), 'D' (draw), 'L' (loss)
+        Most recent match is last in the list
+        """
+        df = self.load_current_matches()
+        if df is None or 'Date' not in df.columns:
+            return []
+        
+        # Sort by date
+        df['Date'] = pd.to_datetime(df['Date'])
+        df = df.sort_values('Date')
+        
+        team_col_home = f'home_team_{team_name}'
+        team_col_away = f'away_team_{team_name}'
+        
+        if team_col_home not in df.columns and team_col_away not in df.columns:
+            return []
+        
+        results = []
+        
+        # Get home matches
+        if team_col_home in df.columns:
+            home_matches = df[df[team_col_home] == True].copy()
+            for _, match in home_matches.iterrows():
+                result = match['result']
+                if result == 2:  # home win
+                    results.append(('W', match['Date']))
+                elif result == 1:  # draw
+                    results.append(('D', match['Date']))
+                else:  # result == 0, home loss
+                    results.append(('L', match['Date']))
+        
+        # Get away matches
+        if team_col_away in df.columns:
+            away_matches = df[df[team_col_away] == True].copy()
+            for _, match in away_matches.iterrows():
+                result = match['result']
+                if result == 0:  # home loss = away win
+                    results.append(('W', match['Date']))
+                elif result == 1:  # draw
+                    results.append(('D', match['Date']))
+                else:  # result == 2, home win = away loss
+                    results.append(('L', match['Date']))
+        
+        # Sort by date and get last n
+        results.sort(key=lambda x: x[1])
+        results = [r[0] for r in results[-n:]]
+        
+        return results
+    
     def prepare_prediction_features(self, home_team: str, away_team: str) -> Optional[pd.DataFrame]:
         """
         Prepare feature vector for model prediction
