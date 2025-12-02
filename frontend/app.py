@@ -54,13 +54,15 @@ st.markdown("""
 st.markdown('<div class="main-header">⚽ AI Sports Analytics Dashboard</div>', unsafe_allow_html=True)
 st.markdown("---")
 
-# Sidebar navigation
+# Sidebar navigation - Model Performance temporarily disabled
 st.sidebar.title("Navigation")
-page = st.sidebar.radio(
-    "Select Page",
-    ["🔮 Match Predictor", "📊 Model Performance"]
-)
+# page = st.sidebar.radio(
+#     "Select Page",
+#     ["🔮 Match Predictor", "📊 Model Performance"]
+# )
 
+# Only show Match Predictor for now
+page = "🔮 Match Predictor"
 
 
 # Import page modules
@@ -68,9 +70,9 @@ try:
     if page == "🔮 Match Predictor":
         from pages import predictor
         predictor.show()
-    elif page == "📊 Model Performance":
-        from pages import performance
-        performance.show()
+    # elif page == "📊 Model Performance":
+    #     from pages import performance
+    #     performance.show()
 except Exception as e:
     st.error(f"Error loading page: {str(e)}")
     st.exception(e)
