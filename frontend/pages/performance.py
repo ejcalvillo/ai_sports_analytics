@@ -97,16 +97,22 @@ def show():
     train_data = current_matches.iloc[:train_size]
     test_data = current_matches.iloc[train_size:]
     
-    # Prepare features for the model (same as training)
-    X_test = test_data.drop(columns=['result', 'date'], errors='ignore')
+    # Prepare features for the model (prevent data leakage)
+    # Drop all non-feature columns
+    columns_to_drop = ['result', 'date', 'home_team', 'away_team', 'home_goals', 'away_goals', 'FTR']
+    X_test = test_data.drop(columns=[c for c in columns_to_drop if c in test_data.columns], errors='ignore')
     y_test = test_data['result'].astype(int)
     
-    # Ensure features are in the same order as training
+    # Ensure features match training exactly
     if feature_names:
+        # Only keep columns that were in training
+        X_test = X_test[[col for col in feature_names if col in X_test.columns]]
+        # Add missing features with default value 0
         missing_cols = [col for col in feature_names if col not in X_test.columns]
         if missing_cols:
             for col in missing_cols:
-                X_test[col] = False
+                X_test[col] = 0
+        # Reorder to match training
         X_test = X_test[feature_names]
     
     # Generate predictions using the TRAINED MODEL
@@ -306,7 +312,9 @@ def show():
     st.subheader("🔍 Predictions vs Actual Results")
     
     # Create comparison dataframe
-    comparison = valid_data[['Date', 'result', 'predicted']].copy()
+    date_col = 'date' if 'date' in valid_data.columns else 'Date'
+    comparison = valid_data[[date_col, 'result', 'predicted']].copy()
+    comparison = comparison.rename(columns={date_col: 'Date'})
     # Map results: 0=Draw, 1=Loss (home loss), 2=Win (home win)
     comparison['result_label'] = comparison['result'].map({0: 'Draw', 1: 'Loss', 2: 'Win'})
     comparison['predicted_label'] = comparison['predicted'].map({0: 'Draw', 1: 'Loss', 2: 'Win'})
