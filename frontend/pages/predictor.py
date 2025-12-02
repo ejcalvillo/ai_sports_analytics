@@ -15,13 +15,25 @@ from utils.data_loader import DataLoader
 
 # Load the trained model (cache it so we don't reload on every prediction)
 @st.cache_resource
-def load_model():
-    """Load the trained CatBoost model and feature names"""
+def load_model(model_name: str = "catboost"):
+    """Load a trained model and feature names"""
     try:
-        base_dir = Path(__file__).parent.parent.parent
+        # From frontend/pages/predictor.py, parents[2] = ai_sports_analytics/
+        base_dir = Path(__file__).resolve().parents[2]
         models_dir = base_dir / "models"
         
-        model_path = models_dir / "catboost_model.pkl"
+        # Map model names to filenames
+        model_files = {
+            "catboost": "catboost_model.pkl",
+            "random_forest": "random_forest_model.pkl",
+            "xgboost": "xgboost_model.pkl"
+        }
+        
+        if model_name not in model_files:
+            st.error(f"❌ Unknown model: {model_name}. Available models: {', '.join(model_files.keys())}")
+            return None, None
+        
+        model_path = models_dir / model_files[model_name]
         features_path = models_dir / "feature_names.pkl"
         
         if not model_path.exists():
@@ -38,27 +50,29 @@ def load_model():
 
 def predict_match_outcome(home_team: str, away_team: str, 
                          home_stats: dict, away_stats: dict,
-                         loader: DataLoader) -> dict:
+                         loader: DataLoader,
+                         use_unseen: bool = False) -> dict:
     """
-    Predict match outcome using the trained CatBoost model
+    Predict match outcome using the trained Random Forest model (matches predictmatch.ipynb logic)
     
     Args:
         home_team: Name of home team
         away_team: Name of away team  
-        home_stats: Dictionary of home team statistics
-        away_stats: Dictionary of away team statistics
+        home_stats: Dictionary of home team statistics (used if use_unseen=False)
+        away_stats: Dictionary of away team statistics (used if use_unseen=False)
         loader: DataLoader instance for feature preparation
+        use_unseen: If True, use features for unseen matches from pl25-26.csv
         
     Returns:
         Dictionary with prediction results
     """
-    # Load the model
-    model, feature_names = load_model()
+    # Load the Random Forest model
+    model, feature_names = load_model("random_forest")
     
     if model is None:
         # Fallback to simple ELO-based prediction
-        home_strength = home_stats.get('avg_home_elo', 1500)
-        away_strength = away_stats.get('avg_away_elo', 1500)
+        home_strength = home_stats.get('home_elo_before', 1500)
+        away_strength = away_stats.get('away_elo_before', 1500)
         elo_diff = home_strength - away_strength
         
         if elo_diff > 50:
@@ -94,68 +108,70 @@ def predict_match_outcome(home_team: str, away_team: str,
             'home_strength': home_strength,
             'away_strength': away_strength,
             'elo_difference': round(elo_diff, 1),
-            'model_used': 'ELO Fallback'
+            'model_used': 'Random Forest Fallback'
         }
     
     # Prepare features for prediction
-    features_df = loader.prepare_prediction_features(home_team, away_team)
+    if use_unseen:
+        features_df = loader.prepare_unseen_match_features(home_team, away_team)
+    else:
+        features_df = loader.prepare_prediction_features(home_team, away_team)
     
     if features_df is None:
         st.error("Unable to prepare prediction features")
         return None
     
-    # Ensure features are in the same order as training
-    if feature_names:
-        # Reorder columns to match training data
-        missing_cols = [col for col in feature_names if col not in features_df.columns]
-        if missing_cols:
-            # Add missing columns with default values
-            for col in missing_cols:
-                features_df[col] = False
-        
-        features_df = features_df[feature_names]
+    # Drop team names if they exist (model doesn't use them)
+    X = features_df.drop(columns=['home_team', 'away_team'], errors='ignore')
     
     # Make prediction
-    pred = model.predict(features_df)
-    # CatBoost may return 2D array, flatten if needed
-    prediction_class = pred.flatten()[0] if len(pred.shape) > 1 else pred[0]
+    proba = model.predict_proba(X)[0]
+    pred = model.predict(X)[0]
     
-    proba = model.predict_proba(features_df)
-    # CatBoost returns probabilities in correct format
-    prediction_proba = proba[0] if len(proba.shape) > 1 else proba
-    
-    # Class encoding: 0=Draw, 1=Loss (home loss), 2=Win (home win)
-    draw_prob = prediction_proba[0]
-    loss_prob = prediction_proba[1]  # home loss = away win
-    win_prob = prediction_proba[2]   # home win
+    # Class encoding from notebook: 0=Away win, 1=Draw, 2=Home win
+    away_win_prob = proba[0]
+    draw_prob = proba[1]
+    home_win_prob = proba[2]
     
     # Determine prediction text
-    if prediction_class == 2:
+    if pred == 2:
         prediction = "Home Win"
-    elif prediction_class == 1:
-        prediction = "Away Win"
-    else:
+    elif pred == 1:
         prediction = "Draw"
+    else:
+        prediction = "Away Win"
     
-    # Get ELO for display
-    home_form = loader.get_team_recent_form(home_team)
-    away_form = loader.get_team_recent_form(away_team)
-    home_strength = home_form.get('home', {}).get('elo', 1500)
-    away_strength = away_form.get('away', {}).get('elo', 1500)
-    elo_diff = home_strength - away_strength
+    # Get ELO for display (extract from DataFrame)
+    try:
+        if 'home_elo_before' in features_df.columns:
+            home_strength = float(features_df.iloc[0]['home_elo_before'])
+        else:
+            home_strength = 1500
+        
+        if 'away_elo_before' in features_df.columns:
+            away_strength = float(features_df.iloc[0]['away_elo_before'])
+        else:
+            away_strength = 1500
+        
+        elo_diff = home_strength - away_strength
+    except Exception as e:
+        home_strength = 1500
+        away_strength = 1500
+        elo_diff = 0
     
     return {
         'home_team': home_team,
         'away_team': away_team,
         'prediction': prediction,
-        'home_win_probability': round(win_prob * 100, 1),
+        'home_win_probability': round(home_win_prob * 100, 1),
         'draw_probability': round(draw_prob * 100, 1),
-        'away_win_probability': round(loss_prob * 100, 1),
-        'confidence': round(max(win_prob, draw_prob, loss_prob) * 100, 1),
-        'home_strength': home_strength,
-        'away_strength': away_strength,
-        'elo_difference': round(elo_diff, 1),
-        'model_used': 'CatBoost (1500 iterations, 71% accuracy)'
+        'away_win_probability': round(away_win_prob * 100, 1),
+        'confidence': round(max(home_win_prob, draw_prob, away_win_prob) * 100, 1),
+        'home_strength': home_strength if isinstance(home_strength, (int, float)) else 1500,
+        'away_strength': away_strength if isinstance(away_strength, (int, float)) else 1500,
+        'elo_difference': round(elo_diff if isinstance(elo_diff, (int, float)) else 0, 1),
+        'model_used': 'Random Forest (Trained on 119 Premier League matches)',
+        'is_unseen': use_unseen
     }
 
 def calculate_predicted_score(prediction: dict, home_form: dict, away_form: dict) -> tuple:
@@ -196,423 +212,442 @@ def calculate_predicted_score(prediction: dict, home_form: dict, away_form: dict
 
 def show():
     """Display the match predictor page"""
-    st.markdown('<div class="sub-header">🔮 Match Predictor</div>', unsafe_allow_html=True)
     
     # Initialize data loader
     loader = DataLoader()
     
     # Get team list
-    teams = loader.get_team_list()
+    teams = loader.load_teams_data()
     
     if not teams:
         st.error("Unable to load team data.")
         return
     
-    # Main prediction interface
-    st.markdown("### ⚽ Select Teams for Prediction")
+    # Only allow prediction on unseen matches
+    st.markdown("### 📅 Predict Upcoming Matches (2025-26 Season)")
     
-    col1, col2 = st.columns(2)
-    
-    with col1:
-        home_team = st.selectbox(
-            "🏠 Home Team:",
-            options=teams,
-            index=0,
-            key='home_team'
-        )
-    
-    with col2:
-        away_team = st.selectbox(
-            "✈️ Away Team:",
-            options=teams,
-            index=min(1, len(teams)-1),
-            key='away_team'
-        )
-    
-    # Predict button
-    if st.button("🎯 Generate Prediction", type="primary", use_container_width=True):
-        if home_team == away_team:
-            st.error("⚠️ Please select two different teams.")
-        else:
-            with st.spinner("Analyzing teams and generating prediction..."):
-                # Get team statistics
-                home_stats = loader.get_team_stats(home_team)
-                away_stats = loader.get_team_stats(away_team)
+    unseen_matches = loader.get_unseen_matches(limit=10)
+    if unseen_matches:
+        # Initialize session state for selected match
+        if 'selected_match_idx' not in st.session_state:
+            st.session_state.selected_match_idx = None
+        
+        # Display matches as grid buttons
+        st.markdown("**Select a match to predict:**")
+        
+        # Add custom CSS for active button styling
+        st.markdown("""
+        <style>
+        .match-button-active {
+            border: 3px solid #1f77b4 !important;
+            background-color: #e8f0f7 !important;
+            box-shadow: 0 0 10px rgba(31, 119, 180, 0.5);
+        }
+        </style>
+        """, unsafe_allow_html=True)
+        
+        # Create a grid of match buttons (2 columns)
+        cols = st.columns(2)
+        for idx, (home_team_opt, away_team_opt) in enumerate(unseen_matches):
+            col = cols[idx % 2]
+            
+            with col:
+                # Check if this button is selected
+                is_selected = st.session_state.selected_match_idx == idx
                 
-                if 'error' in home_stats or 'error' in away_stats:
-                    st.error("Unable to retrieve team statistics.")
-                    return
+                # Create button with selected state indicator
+                button_label = f"🏠 {home_team_opt}\nvs\n✈️ {away_team_opt}"
+                if is_selected:
+                    button_label = f"✓ 🏠 {home_team_opt}\nvs\n✈️ {away_team_opt}"
                 
-                # Make prediction using trained CatBoost model
-                prediction = predict_match_outcome(
-                    home_team, away_team,
-                    home_stats, away_stats,
-                    loader
+                button_clicked = st.button(
+                    button_label,
+                    key=f"match_btn_{idx}",
+                    use_container_width=True,
+                    type="primary" if is_selected else "secondary"
                 )
-            
-            # Display results
-            st.success("✅ Prediction Complete!")
-            st.markdown("---")
-            
-            # Main prediction result
-            col1, col2, col3 = st.columns([1, 2, 1])
-            
-            with col1:
-                st.markdown(f"<h3 style='text-align: center;'>{home_team}</h3>", unsafe_allow_html=True)
-                st.markdown(f"<p style='text-align: center; color: #888;'>ELO: {prediction['home_strength']:.0f}</p>", unsafe_allow_html=True)
-            
-            with col2:
-                st.markdown(f"<h1 style='text-align: center; color: #1f77b4;'>VS</h1>", unsafe_allow_html=True)
                 
-                # Prediction result
-                outcome_text = prediction['prediction']
-                if outcome_text == "Home Win":
-                    outcome_color = "#2ca02c"
-                    outcome_icon = "🏆"
-                elif outcome_text == "Away Win":
-                    outcome_color = "#d62728"
-                    outcome_icon = "🏆"
+                if button_clicked:
+                    st.session_state.selected_match_idx = idx
+                    st.rerun()
+        
+        # Show selected match and prediction button
+        if st.session_state.selected_match_idx is not None:
+            home_team, away_team = unseen_matches[st.session_state.selected_match_idx]
+            st.info(f"🔮 Selected: **{home_team}** vs **{away_team}**")
+            
+            # Predict button
+            if st.button("🎯 Generate Prediction", type="primary", use_container_width=True):
+                if home_team == away_team:
+                    st.error("⚠️ Please select two different teams.")
                 else:
-                    outcome_color = "#ff7f0e"
-                    outcome_icon = "🤝"
-                
-                st.markdown(f"<h2 style='text-align: center; color: {outcome_color};'>{outcome_icon} {outcome_text}</h2>", unsafe_allow_html=True)
-                st.markdown(f"<p style='text-align: center; font-size: 1.2em;'>Confidence: <strong>{prediction['confidence']}%</strong></p>", unsafe_allow_html=True)
-            
-            with col3:
-                st.markdown(f"<h3 style='text-align: center;'>{away_team}</h3>", unsafe_allow_html=True)
-                st.markdown(f"<p style='text-align: center; color: #888;'>ELO: {prediction['away_strength']:.0f}</p>", unsafe_allow_html=True)
-            
-            st.markdown("---")
-            
-            # Probability breakdown
-            st.subheader("📊 Win Probabilities")
-            
-            col1, col2, col3 = st.columns(3)
-            
-            with col1:
-                st.metric(
-                    label=f"🏠 {home_team} Win",
-                    value=f"{prediction['home_win_probability']}%"
-                )
-            
-            with col2:
-                st.metric(
-                    label="🤝 Draw",
-                    value=f"{prediction['draw_probability']}%"
-                )
-            
-            with col3:
-                st.metric(
-                    label=f"✈️ {away_team} Win",
-                    value=f"{prediction['away_win_probability']}%"
-                )
-            
-            # Visualization
-            fig = go.Figure()
-            
-            outcomes = ['Home Win', 'Draw', 'Away Win']
-            probabilities = [
-                prediction['home_win_probability'],
-                prediction['draw_probability'],
-                prediction['away_win_probability']
-            ]
-            colors = ['#2ca02c', '#ff7f0e', '#d62728']
-            
-            fig.add_trace(go.Bar(
-                x=outcomes,
-                y=probabilities,
-                text=[f"{p}%" for p in probabilities],
-                textposition='auto',
-                marker_color=colors,
-                hovertemplate='%{x}: %{y}%<extra></extra>'
-            ))
-            
-            fig.update_layout(
-                title='Probability Distribution',
-                xaxis_title='Outcome',
-                yaxis_title='Probability (%)',
-                yaxis_range=[0, 100],
-                showlegend=False,
-                height=350
-            )
-            
-            st.plotly_chart(fig, use_container_width=True)
-            
-            # Predicted score (integers only - no decimals!)
-            # Get team form for score calculation
-            home_form = loader.get_team_recent_form(home_team)
-            away_form = loader.get_team_recent_form(away_team)
-            predicted_home, predicted_away = calculate_predicted_score(prediction, home_form, away_form)
-            
-            st.markdown("---")
-            st.subheader("⚽ Predicted Score")
-            
-            col1, col2, col3 = st.columns([2, 1, 2])
-            
-            with col1:
-                st.markdown(f"<h3 style='text-align: center;'>{home_team}</h3>", unsafe_allow_html=True)
-            
-            with col2:
-                # Display integer scores only (format as :d to ensure no decimals)
-                st.markdown(f"<h1 style='text-align: center; color: #1f77b4;'>{int(predicted_home)} - {int(predicted_away)}</h1>", unsafe_allow_html=True)
-            
-            with col3:
-                st.markdown(f"<h3 style='text-align: center;'>{away_team}</h3>", unsafe_allow_html=True)
-            
-            st.caption("🔢 Predicted scoreline based on match outcome prediction. Actual goals may vary.")
-            
-            # Key factors
-            st.markdown("---")
-            st.subheader("📈 Key Factors")
-            
-            col1, col2 = st.columns(2)
-            
-            with col1:
-                st.markdown(f"**{home_team}**")
-                st.write(f"- ELO Rating: **{prediction['home_strength']:.0f}**")
-                st.write(f"- Win Rate: **{home_stats.get('win_rate', 0):.1f}%**")
-                st.write(f"- Total Wins: **{home_stats.get('wins', 0)}**")
-            
-            with col2:
-                st.markdown(f"**{away_team}**")
-                st.write(f"- ELO Rating: **{prediction['away_strength']:.0f}**")
-                st.write(f"- Win Rate: **{away_stats.get('win_rate', 0):.1f}%**")
-                st.write(f"- Total Wins: **{away_stats.get('wins', 0)}**")
-            
-            # Radar Chart Comparison and Recent Form
-            st.markdown("### 🎯 Team Stats Comparison")
-            
-            # Create two columns for side-by-side charts
-            chart_col1, chart_col2 = st.columns(2)
-            
-            with chart_col1:
-                st.markdown("#### 📊 Stats Pentagon")
-                
-                # Prepare data for radar chart
-                categories = ['ELO Rating', 'Goals For', 'Goals Against', 'Form Score', 'Avg Points']
-                
-                # Normalize values to 0-100 scale for better visualization
-                def normalize(value, min_val, max_val):
-                    if max_val == min_val:
-                        return 50
-                    return ((value - min_val) / (max_val - min_val)) * 100
-                
-                # Get raw values for both teams
-                home_elo = prediction['home_strength']
-                away_elo = prediction['away_strength']
-                home_gf = home_form.get('home', {}).get('avg_gf', 1.5)
-                away_gf = away_form.get('away', {}).get('avg_gf', 1.5)
-                home_ga = home_form.get('home', {}).get('avg_ga', 1.5)
-                away_ga = away_form.get('away', {}).get('avg_ga', 1.5)
-                home_form_score = home_form.get('home', {}).get('form_score', 0)
-                away_form_score = away_form.get('away', {}).get('form_score', 0)
-                home_pts = home_form.get('home', {}).get('avg_pts', 1.5)
-                away_pts = away_form.get('away', {}).get('avg_pts', 1.5)
-                
-                # Normalize ELO (typical range: 1200-2000)
-                elo_min, elo_max = 1200, 2000
-                home_elo_norm = normalize(home_elo, elo_min, elo_max)
-                away_elo_norm = normalize(away_elo, elo_min, elo_max)
-                
-                # Normalize Goals For (typical range: 0-3)
-                gf_min, gf_max = 0, 3
-                home_gf_norm = normalize(home_gf, gf_min, gf_max)
-                away_gf_norm = normalize(away_gf, gf_min, gf_max)
-                
-                # Normalize Goals Against (lower is better, so invert)
-                ga_min, ga_max = 0, 3
-                home_ga_norm = 100 - normalize(home_ga, ga_min, ga_max)
-                away_ga_norm = 100 - normalize(away_ga, ga_min, ga_max)
-                
-                # Normalize Form Score (typical range: -5 to 15)
-                form_min, form_max = -5, 15
-                home_form_norm = normalize(home_form_score, form_min, form_max)
-                away_form_norm = normalize(away_form_score, form_min, form_max)
-                
-                # Normalize Points (typical range: 0-3)
-                pts_min, pts_max = 0, 3
-                home_pts_norm = normalize(home_pts, pts_min, pts_max)
-                away_pts_norm = normalize(away_pts, pts_min, pts_max)
-                
-                # Create radar chart
-                fig_radar = go.Figure()
-                
-                fig_radar.add_trace(go.Scatterpolar(
-                    r=[home_elo_norm, home_gf_norm, home_ga_norm, home_form_norm, home_pts_norm],
-                    theta=categories,
-                    fill='toself',
-                    name=home_team,
-                    line_color='#2ca02c',
-                    fillcolor='rgba(44, 160, 44, 0.3)'
-                ))
-                
-                fig_radar.add_trace(go.Scatterpolar(
-                    r=[away_elo_norm, away_gf_norm, away_ga_norm, away_form_norm, away_pts_norm],
-                    theta=categories,
-                    fill='toself',
-                    name=away_team,
-                    line_color='#d62728',
-                    fillcolor='rgba(214, 39, 40, 0.3)'
-                ))
-                
-                fig_radar.update_layout(
-                    polar=dict(
-                        radialaxis=dict(
-                            visible=True,
-                            range=[0, 100],
-                            showticklabels=True,
-                            ticks='',
-                            tickfont=dict(size=10)
+                    with st.spinner("Analyzing teams and generating prediction..."):
+                        # For unseen matches, we don't need historical stats
+                        home_stats = {}
+                        away_stats = {}
+                        
+                        # Make prediction using Random Forest model
+                        prediction = predict_match_outcome(
+                            home_team, away_team,
+                            home_stats, away_stats,
+                            loader,
+                            use_unseen=True
                         )
-                    ),
-                    showlegend=True,
-                    height=450,
-                    margin=dict(l=40, r=40, t=40, b=40)
-                )
-                
-                st.plotly_chart(fig_radar, use_container_width=True)
-                
-                # Add explanatory text
-                st.caption("""
-                **Pentagon Breakdown:**
-                - **ELO**: Team strength rating
-                - **Goals For**: Avg goals scored
-                - **Goals Against**: Defense (inverted)
-                - **Form Score**: Recent trend
-                - **Avg Points**: Points per match
-                """)
-            
-            with chart_col2:
-                st.markdown("#### 📊 Last 5 Matches Form")
-                
-                # Get last 5 results for both teams
-                home_results = loader.get_team_last_n_results(home_team, 5)
-                away_results = loader.get_team_last_n_results(away_team, 5)
-                
-                # Count wins, draws, losses for both teams
-                home_wins = home_results.count('W')
-                home_draws = home_results.count('D')
-                home_losses = home_results.count('L')
-                away_wins = away_results.count('W')
-                away_draws = away_results.count('D')
-                away_losses = away_results.count('L')
-                
-                # Create grouped bar chart
-                fig_form = go.Figure()
-                
-                categories = ['Wins', 'Draws', 'Losses']
-                
-                fig_form.add_trace(go.Bar(
-                    name=home_team,
-                    x=categories,
-                    y=[home_wins, home_draws, home_losses],
-                    marker_color='#2ca02c',
-                    text=[home_wins, home_draws, home_losses],
-                    textposition='auto',
-                    textfont=dict(size=14, color='white', family='Arial Black'),
-                    hovertemplate='%{y} %{x}<extra></extra>'
-                ))
-                
-                fig_form.add_trace(go.Bar(
-                    name=away_team,
-                    x=categories,
-                    y=[away_wins, away_draws, away_losses],
-                    marker_color='#d62728',
-                    text=[away_wins, away_draws, away_losses],
-                    textposition='auto',
-                    textfont=dict(size=14, color='white', family='Arial Black'),
-                    hovertemplate='%{y} %{x}<extra></extra>'
-                ))
-                
-                fig_form.update_layout(
-                    barmode='group',
-                    xaxis=dict(
-                        title='Result Type'
-                    ),
-                    yaxis=dict(
-                        title='Number of Matches',
-                        range=[0, 5.5],
-                        dtick=1
-                    ),
-                    showlegend=True,
-                    legend=dict(
-                        orientation='h',
-                        yanchor='bottom',
-                        y=1.02,
-                        xanchor='center',
-                        x=0.5
-                    ),
-                    height=450,
-                    margin=dict(l=60, r=40, t=60, b=60),
-                    plot_bgcolor='rgba(240,240,240,0.3)'
-                )
-                
-                st.plotly_chart(fig_form, use_container_width=True)
-                
-                # Detailed match-by-match breakdown
-                st.markdown("**Match-by-Match Results:**")
-                
-                # Create visual indicators for each team
-                def result_emoji(result):
-                    if result == 'W':
-                        return '✅'
-                    elif result == 'D':
-                        return '🟨'
-                    elif result == 'L':
-                        return '❌'
+                    
+                    # Display results
+                    st.success("✅ Prediction Complete!")
+                    st.markdown("---")
+                    
+                    # Main prediction result
+                    col1, col2, col3 = st.columns([1, 2, 1])
+                    
+                    with col1:
+                        st.markdown(f"<h3 style='text-align: center;'>{home_team}</h3>", unsafe_allow_html=True)
+                        st.markdown(f"<p style='text-align: center; color: #888;'>ELO: {prediction['home_strength']:.0f}</p>", unsafe_allow_html=True)
+                    
+                    with col2:
+                        st.markdown(f"<h1 style='text-align: center; color: #1f77b4;'>VS</h1>", unsafe_allow_html=True)
+                        
+                        # Prediction result
+                        outcome_text = prediction['prediction']
+                        if outcome_text == "Home Win":
+                            outcome_color = "#2ca02c"
+                            outcome_icon = "🏆"
+                        elif outcome_text == "Away Win":
+                            outcome_color = "#d62728"
+                            outcome_icon = "🏆"
+                        else:
+                            outcome_color = "#ff7f0e"
+                            outcome_icon = "🤝"
+                        
+                        st.markdown(f"<h2 style='text-align: center; color: {outcome_color};'>{outcome_icon} {outcome_text}</h2>", unsafe_allow_html=True)
+                        st.markdown(f"<p style='text-align: center; font-size: 1.2em;'>Confidence: <strong>{prediction['confidence']}%</strong></p>", unsafe_allow_html=True)
+                    
+                    with col3:
+                        st.markdown(f"<h3 style='text-align: center;'>{away_team}</h3>", unsafe_allow_html=True)
+                        st.markdown(f"<p style='text-align: center; color: #888;'>ELO: {prediction['away_strength']:.0f}</p>", unsafe_allow_html=True)
+                    
+                    st.markdown("---")
+                    
+                    # Probability breakdown
+                    st.subheader("📊 Win Probabilities")
+                    
+                    col1, col2, col3 = st.columns(3)
+                    
+                    with col1:
+                        st.metric(
+                            label=f"🏠 {home_team} Win",
+                            value=f"{prediction['home_win_probability']}%"
+                        )
+                    
+                    with col2:
+                        st.metric(
+                            label="🤝 Draw",
+                            value=f"{prediction['draw_probability']}%"
+                        )
+                    
+                    with col3:
+                        st.metric(
+                            label=f"✈️ {away_team} Win",
+                            value=f"{prediction['away_win_probability']}%"
+                        )
+                    
+                    # Visualization
+                    fig = go.Figure()
+                    
+                    outcomes = ['Home Win', 'Draw', 'Away Win']
+                    probabilities = [
+                        prediction['home_win_probability'],
+                        prediction['draw_probability'],
+                        prediction['away_win_probability']
+                    ]
+                    colors = ['#2ca02c', '#ff7f0e', '#d62728']
+                    
+                    fig.add_trace(go.Bar(
+                        x=outcomes,
+                        y=probabilities,
+                        text=[f"{p}%" for p in probabilities],
+                        textposition='auto',
+                        marker_color=colors,
+                        hovertemplate='%{x}: %{y}%<extra></extra>'
+                    ))
+                    
+                    fig.update_layout(
+                        title='Probability Distribution',
+                        xaxis_title='Outcome',
+                        yaxis_title='Probability (%)',
+                        yaxis_range=[0, 100],
+                        showlegend=False,
+                        height=350
+                    )
+                    
+                    st.plotly_chart(fig, use_container_width=True)
+                    
+                    # Predicted score (integers only - no decimals!)
+                    # Get team form for score calculation
+                    home_form = loader.get_team_recent_form(home_team)
+                    away_form = loader.get_team_recent_form(away_team)
+                    predicted_home, predicted_away = calculate_predicted_score(prediction, home_form, away_form)
+                    
+                    st.markdown("---")
+                    st.subheader("⚽ Predicted Score")
+                    
+                    col1, col2, col3 = st.columns([2, 1, 2])
+                    
+                    with col1:
+                        st.markdown(f"<h3 style='text-align: center;'>{home_team}</h3>", unsafe_allow_html=True)
+                    
+                    with col2:
+                        # Display integer scores only (format as :d to ensure no decimals)
+                        st.markdown(f"<h1 style='text-align: center; color: #1f77b4;'>{int(predicted_home)} - {int(predicted_away)}</h1>", unsafe_allow_html=True)
+                    
+                    with col3:
+                        st.markdown(f"<h3 style='text-align: center;'>{away_team}</h3>", unsafe_allow_html=True)
+                    
+                    st.caption("🔢 Predicted scoreline based on match outcome prediction. Actual goals may vary.")
+                    
+                    # Retrieve form data upfront for all sections
+                    home_form_data = loader.get_team_recent_form(home_team, 5)
+                    away_form_data = loader.get_team_recent_form(away_team, 5)
+                    
+                    # Key factors
+                    st.markdown("---")
+                    st.subheader("📈 Key Factors (Last 5 Matches)")
+                    
+                    col1, col2 = st.columns(2)
+                    
+                    with col1:
+                        st.markdown(f"**{home_team}**")
+                        st.write(f"- ELO Rating: **{prediction['home_strength']:.0f}**")
+                        home_form_wins = int(home_form_data.get('home', {}).get('wins', 0))
+                        home_form_score = home_form_data.get('home', {}).get('form_score', 0)
+                        st.write(f"- Form: **{home_form_wins}W-{int(home_form_data.get('home', {}).get('draws', 0))}D-{int(home_form_data.get('home', {}).get('losses', 0))}L** ({home_form_score:.0f} pts)")
+                        st.write(f"- Avg Goals For: **{home_form_data.get('home', {}).get('avg_gf', 0):.2f}**")
+                        st.write(f"- Avg Goals Against: **{home_form_data.get('home', {}).get('avg_ga', 0):.2f}**")
+                        st.write(f"- Expected Goals (xG): **{home_form_data.get('home', {}).get('xg', 0):.2f}**")
+                    
+                    with col2:
+                        st.markdown(f"**{away_team}**")
+                        st.write(f"- ELO Rating: **{prediction['away_strength']:.0f}**")
+                        away_form_wins = int(away_form_data.get('away', {}).get('wins', 0))
+                        away_form_score = away_form_data.get('away', {}).get('form_score', 0)
+                        st.write(f"- Form: **{away_form_wins}W-{int(away_form_data.get('away', {}).get('draws', 0))}D-{int(away_form_data.get('away', {}).get('losses', 0))}L** ({away_form_score:.0f} pts)")
+                        st.write(f"- Avg Goals For: **{away_form_data.get('away', {}).get('avg_gf', 0):.2f}**")
+                        st.write(f"- Avg Goals Against: **{away_form_data.get('away', {}).get('avg_ga', 0):.2f}**")
+                        st.write(f"- Expected Goals (xG): **{away_form_data.get('away', {}).get('xg', 0):.2f}**")
+                    
+                    # Radar Chart Comparison and Recent Form
+                    st.markdown("### 🎯 Team Stats Comparison")
+                    
+                    # Create two columns for side-by-side charts
+                    chart_col1, chart_col2 = st.columns(2)
+                    
+                    with chart_col1:
+                        st.markdown("#### 📊 Stats Pentagon")
+                        
+                        # Form data already retrieved above (ensures data is always available)
+                        
+                        # Prepare data for radar chart
+                        categories = ['ELO Rating', 'Goals For', 'Goals Against', 'Form Score', 'Win Rate']
+                        
+                        # Normalize values to 0-100 scale for better visualization
+                        def normalize(value, min_val, max_val):
+                            if max_val == min_val:
+                                return 50
+                            return ((value - min_val) / (max_val - min_val)) * 100
+                        
+                        # Get raw values for both teams
+                        home_elo = prediction['home_strength']
+                        away_elo = prediction['away_strength']
+                        home_gf = home_form_data.get('home', {}).get('avg_gf', 1.5)
+                        away_gf = away_form_data.get('away', {}).get('avg_gf', 1.5)
+                        home_ga = home_form_data.get('home', {}).get('avg_ga', 1.5)
+                        away_ga = away_form_data.get('away', {}).get('avg_ga', 1.5)
+                        home_form_score_chart = home_form_data.get('home', {}).get('form_score', 0)
+                        away_form_score_chart = away_form_data.get('away', {}).get('form_score', 0)
+                        home_win_rate = 0  # Not available for unseen matches, use 0
+                        away_win_rate = 0  # Not available for unseen matches, use 0
+                        
+                        # Normalize ELO (typical range: 1200-2000)
+                        elo_min, elo_max = 1200, 2000
+                        home_elo_norm = normalize(home_elo, elo_min, elo_max)
+                        away_elo_norm = normalize(away_elo, elo_min, elo_max)
+                        
+                        # Normalize Goals For (typical range: 0-3)
+                        gf_min, gf_max = 0, 3
+                        home_gf_norm = normalize(home_gf, gf_min, gf_max)
+                        away_gf_norm = normalize(away_gf, gf_min, gf_max)
+                        
+                        # Normalize Goals Against (lower is better, so invert)
+                        ga_min, ga_max = 0, 3
+                        home_ga_norm = 100 - normalize(home_ga, ga_min, ga_max)
+                        away_ga_norm = 100 - normalize(away_ga, ga_min, ga_max)
+                        
+                        # Normalize Form Score (typical range: 0-15 for 5 games)
+                        form_min, form_max = 0, 15
+                        home_form_norm = normalize(home_form_score_chart, form_min, form_max)
+                        away_form_norm = normalize(away_form_score_chart, form_min, form_max)
+                        
+                        # Normalize Win Rate (typical range: 0-100)
+                        wr_min, wr_max = 0, 100
+                        home_wr_norm = normalize(home_win_rate, wr_min, wr_max)
+                        away_wr_norm = normalize(away_win_rate, wr_min, wr_max)
+                        
+                        # Create radar chart
+                        fig_radar = go.Figure()
+                        
+                        fig_radar.add_trace(go.Scatterpolar(
+                            r=[home_elo_norm, home_gf_norm, home_ga_norm, home_form_norm, home_wr_norm],
+                            theta=categories,
+                            fill='toself',
+                            name=home_team,
+                            line_color='#2ca02c',
+                            fillcolor='rgba(44, 160, 44, 0.3)'
+                        ))
+                        
+                        fig_radar.add_trace(go.Scatterpolar(
+                            r=[away_elo_norm, away_gf_norm, away_ga_norm, away_form_norm, away_wr_norm],
+                            theta=categories,
+                            fill='toself',
+                            name=away_team,
+                            line_color='#d62728',
+                            fillcolor='rgba(214, 39, 40, 0.3)'
+                        ))
+                        
+                        fig_radar.update_layout(
+                            polar=dict(
+                                radialaxis=dict(
+                                    visible=True,
+                                    range=[0, 100],
+                                    showticklabels=True,
+                                    ticks='',
+                                    tickfont=dict(size=10)
+                                )
+                            ),
+                            showlegend=True,
+                            height=450,
+                            margin=dict(l=40, r=40, t=40, b=40)
+                        )
+                        
+                        st.plotly_chart(fig_radar, use_container_width=True)
+                        
+                        # Add explanatory text
+                        st.caption("""
+                        **Pentagon Breakdown:**
+                        - **ELO**: Team strength rating (1200-2000)
+                        - **Goals For**: Avg goals scored (0-3)
+                        - **Goals Against**: Defense quality inverted (0-3)
+                        - **Form Score**: Last 5 matches (0-15 pts)
+                        - **Win Rate**: Career win percentage (0-100%)
+                        """)
+                    
+                    with chart_col2:
+                        st.markdown("#### 📊 Team Form Summary (Last 5 Matches)")
+                        
+                        # Use form data already retrieved (avoid redundant retrieval)
+                        home_wins = int(home_form_data.get('home', {}).get('wins', 0))
+                        home_draws = int(home_form_data.get('home', {}).get('draws', 0))
+                        home_losses = int(home_form_data.get('home', {}).get('losses', 0))
+                        away_wins = int(away_form_data.get('away', {}).get('wins', 0))
+                        away_draws = int(away_form_data.get('away', {}).get('draws', 0))
+                        away_losses = int(away_form_data.get('away', {}).get('losses', 0))
+                        
+                        # Create grouped bar chart
+                        fig_form = go.Figure()
+                        
+                        categories = ['Wins', 'Draws', 'Losses']
+                        
+                        fig_form.add_trace(go.Bar(
+                            name=home_team,
+                            x=categories,
+                            y=[home_wins, home_draws, home_losses],
+                            marker_color='#2ca02c',
+                            text=[home_wins, home_draws, home_losses],
+                            textposition='auto',
+                            textfont=dict(size=14, color='white', family='Arial Black'),
+                            hovertemplate='%{y} %{x}<extra></extra>'
+                        ))
+                        
+                        fig_form.add_trace(go.Bar(
+                            name=away_team,
+                            x=categories,
+                            y=[away_wins, away_draws, away_losses],
+                            marker_color='#d62728',
+                            text=[away_wins, away_draws, away_losses],
+                            textposition='auto',
+                            textfont=dict(size=14, color='white', family='Arial Black'),
+                            hovertemplate='%{y} %{x}<extra></extra>'
+                        ))
+                        
+                        fig_form.update_layout(
+                            barmode='group',
+                            xaxis=dict(
+                                title='Result Type'
+                            ),
+                            yaxis=dict(
+                                title='Number of Matches',
+                                range=[0, 5.5],
+                                dtick=1
+                            ),
+                            showlegend=True,
+                            legend=dict(
+                                orientation='h',
+                                yanchor='bottom',
+                                y=1.02,
+                                xanchor='center',
+                                x=0.5
+                            ),
+                            height=450,
+                            margin=dict(l=60, r=40, t=60, b=60),
+                            plot_bgcolor='rgba(240,240,240,0.3)'
+                        )
+                        
+                        st.plotly_chart(fig_form, use_container_width=True)
+                        
+                        # Form summary
+                        st.markdown("**Recent Form Summary (Last 5):**")
+                        
+                        # Display in columns
+                        match_col1, match_col2 = st.columns(2)
+                        
+                        with match_col1:
+                            st.markdown(f"**{home_team}**")
+                            st.markdown(f"📊 {home_wins}W-{home_draws}D-{home_losses}L")
+                            home_form_score = home_form_data.get('home', {}).get('form_score', 0)
+                            st.markdown(f"⭐ Form: {home_form_score:.0f} pts")
+                        
+                        with match_col2:
+                            st.markdown(f"**{away_team}**")
+                            st.markdown(f"📊 {away_wins}W-{away_draws}D-{away_losses}L")
+                            away_form_score = away_form_data.get('away', {}).get('form_score', 0)
+                            st.markdown(f"⭐ Form: {away_form_score:.0f} pts")
+                    
+                    # ELO difference insight
+                    elo_diff = abs(prediction['elo_difference'])
+                    if elo_diff > 100:
+                        strength_text = "**Strong advantage** for the higher-rated team"
+                    elif elo_diff > 50:
+                        strength_text = "**Moderate advantage** for the higher-rated team"
                     else:
-                        return '⚪'
-                
-                # Pad results if needed
-                while len(home_results) < 5:
-                    home_results.insert(0, '-')
-                while len(away_results) < 5:
-                    away_results.insert(0, '-')
-                
-                # Display in columns
-                match_col1, match_col2 = st.columns(2)
-                
-                with match_col1:
-                    st.markdown(f"**{home_team}**")
-                    home_display = ' '.join([result_emoji(r) for r in home_results])
-                    st.markdown(f"{home_display}")
-                    st.caption(f"{home_wins}W-{home_draws}D-{home_losses}L")
-                
-                with match_col2:
-                    st.markdown(f"**{away_team}**")
-                    away_display = ' '.join([result_emoji(r) for r in away_results])
-                    st.markdown(f"{away_display}")
-                    st.caption(f"{away_wins}W-{away_draws}D-{away_losses}L")
-                
-                st.caption("*From last 5 matches (oldest → newest)*")
-            
-            # ELO difference insight
-            elo_diff = abs(prediction['elo_difference'])
-            if elo_diff > 100:
-                strength_text = "**Strong advantage** for the higher-rated team"
-            elif elo_diff > 50:
-                strength_text = "**Moderate advantage** for the higher-rated team"
-            else:
-                strength_text = "**Very close match** - teams are evenly matched"
-            
-            st.info(f"**ELO Difference:** {elo_diff:.0f} points - {strength_text}")
-            
-            # Model info
-            st.markdown("---")
-            st.info(f"""
-            🤖 **AI Model:** {prediction.get('model_used', 'CatBoost')}
-            
-            This prediction is generated by the trained machine learning model from `classification.ipynb`.
-            The model was trained on {119} Premier League matches using features like:
-            - Recent form (last 5 matches)
-            - Goals scored/conceded averages
-            - ELO ratings
-            - Expected goals (xG)
-            """)
-            
-            # Disclaimer
-            st.warning("""
-            ⚠️ **Note:** Predictions are based on historical data and statistical patterns. 
-            Actual results may vary due to injuries, form, weather, and other factors.
-            """)
+                        strength_text = "**Very close match** - teams are evenly matched"
+                    
+                    st.info(f"**ELO Difference:** {elo_diff:.0f} points - {strength_text}")
+                    
+                    # Model info
+                    st.markdown("---")
+                    st.info(f"""
+                    🤖 **AI Model:** {"Random Forest (Trained on 2021-2025 Premiere League Data.)"}
+                    
+                    This prediction is generated by the trained machine learning model from `classification.ipynb`.
+                    The model was trained on {1640} Premier League matches using features like:
+                    - Recent form (last 5 matches)
+                    - Goals scored/conceded averages
+                    - ELO ratings
+                    - Expected goals (xG)
+                    """)
+                    
+                    # Disclaimer
+                    st.warning("""
+                    ⚠️ **Note:** Predictions are based on historical data and statistical patterns. 
+                    Actual results may vary due to injuries, form, weather, and other factors.
+                    """)

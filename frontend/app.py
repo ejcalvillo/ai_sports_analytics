@@ -61,22 +61,7 @@ page = st.sidebar.radio(
     ["🔮 Match Predictor", "📊 Model Performance"]
 )
 
-st.sidebar.markdown("---")
-st.sidebar.info("""
-    **About This Dashboard**
-    
-    AI-powered Premier League match prediction system.
-    
-    - **Match Predictor**: Select teams and get predictions
-    - **Model Performance**: View accuracy metrics and F1-scores
-    
-    **What is ELO?**  
-    ELO rating system measures team strength (~1400-1600 for Premier League).
-    Higher ELO = stronger team. Already exists in your data as a key prediction feature.
-    
-    **Result Encoding:**  
-    Your notebook uses: `0 = Draw`, `1 = Loss (home team loss)`, `2 = Win (home team win)`
-""")
+
 
 # Import page modules
 try:
