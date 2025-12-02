@@ -72,9 +72,9 @@ def show():
     # Initialize data loader
     loader = DataLoader()
     
-    # Load current matches data (same as notebook uses)
-    with st.spinner("Loading prediction data from currmatches.csv..."):
-        current_matches = loader.load_current_matches()
+    # Load matches data (pl_final.csv)
+    with st.spinner("Loading prediction data from pl_final.csv..."):
+        current_matches = loader.load_matches_data()
     
     if current_matches is None or len(current_matches) == 0:
         st.warning("No prediction data available.")
@@ -85,10 +85,10 @@ def show():
         st.error("Result column not found in data.")
         return
     
-    # Convert Date column to datetime and sort (mimicking notebook)
-    if 'Date' in current_matches.columns:
-        current_matches['Date'] = pd.to_datetime(current_matches['Date'])
-        current_matches = current_matches.sort_values(by='Date')
+    # Convert date column to datetime and sort (mimicking notebook)
+    if 'date' in current_matches.columns:
+        current_matches['date'] = pd.to_datetime(current_matches['date'])
+        current_matches = current_matches.sort_values(by='date')
     
     # Apply 80/20 split EXACTLY like the notebook
     train_size = int(len(current_matches) * 0.8)
@@ -96,7 +96,7 @@ def show():
     test_data = current_matches.iloc[train_size:]
     
     # Prepare features for the model (same as training)
-    X_test = test_data.drop(columns=['result', 'Date'], errors='ignore')
+    X_test = test_data.drop(columns=['result', 'date'], errors='ignore')
     y_test = test_data['result'].astype(int)
     
     # Ensure features are in the same order as training
