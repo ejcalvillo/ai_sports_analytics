@@ -4,6 +4,8 @@ Model Performance Page - Shows prediction accuracy and metrics
 IMPORTANT: This page uses the TRAINED MODEL from classification.ipynb
 It loads the saved CatBoost model and shows its exact performance metrics
 matching what you see in the notebook.
+
+Version: 1.1 - Fixed DataLoader method call
 """
 
 import streamlit as st
