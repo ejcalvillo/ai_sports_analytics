@@ -79,7 +79,7 @@ except Exception as e:
 st.markdown("---")
 st.markdown(
     "<div style='text-align: center; color: #888; padding: 1rem;'>"
-    "AI Sports Analytics | Premier League Prediction System"
+    "AI Sports Analytics | Premier League Prediction System | v1.0"
     "</div>",
     unsafe_allow_html=True
 )
