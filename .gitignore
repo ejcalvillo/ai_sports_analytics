@@ -78,6 +78,9 @@ target/
 # Jupyter Notebook
 .ipynb_checkpoints
 
+# CatBoost training artifacts
+catboost_info/
+
 # IPython
 profile_default/
 ipython_config.py
